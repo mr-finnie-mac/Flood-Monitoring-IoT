@@ -1,6 +1,6 @@
 /**
- * This example connects to the device specific endpoint in AWS in order to
- * publish and retrieve MQTT messages.
+ * Auth: Fin Mead
+ * Desc: Reads IR sensor and maps to MM then sends it via MQTT to AWS
  */
 
 #include <Arduino.h>
@@ -11,11 +11,7 @@
 #include <lte.h>
 #include <mqtt_client.h>
 
-// AWS defines which topic you are allowed to subscribe and publish too. This is
-// defined by the policy The default policy with the Microchip IoT Provisioning
-// Tool allows for publishing and subscribing on thing_id/topic. If you want to
-// publish and subscribe on other topics, see the AWS IoT Core Policy
-// documentation.
+// AWS Topic connection
 const char MQTT_SUB_TOPIC_FMT[] PROGMEM = "%s/sensors";
 const char MQTT_PUB_TOPIC_FMT[] PROGMEM = "%s/sensors";
 
@@ -124,12 +120,15 @@ void setup() {
 
 void loop() {
     int analogValue = analogRead(A5); // IR connected to A5
-    int distance = map(analogValue, 0, 1023, 0, 30); // Map analogue value to a distance from 30cm to 0cm
+    int distance = map(analogValue, 93, 620, 0, 210); // Map analogue value to a distance from 0cm to 21cm
     
     // Print the distance
-    Serial3.print("Water level Distance: ");
+    Serial3.print("RAW: ");
+    Serial3.print(analogValue);
+    Serial3.print(" | MAPPED: ");
     Serial3.print(distance);
-    Serial3.println(" cm");
+    Serial3.println(" MM");
+  
  
     int waterLevel = distance;
 
@@ -163,7 +162,5 @@ void loop() {
         Log.error(F("Failed to publish"));
         // Handle publish failure, such as retrying or disconnecting
     }
-
-    // Wait for some time before sending the next MQTT message
-    delay(3000); // 10-second interval between MQTT messages
+    delay(3000); // 3 second interval between MQTT messages
 }
